@@ -1,0 +1,13 @@
+env/
+build/
+dist/
+output/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.vscode/
+.DS_Store
+thumbs.db
+.idea/
+*.log
