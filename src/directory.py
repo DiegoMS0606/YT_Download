@@ -1,16 +1,20 @@
-import os
-import subprocess
+import os, platform
+import subprocess, logging
+
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+
 # funcion que crea cualquier carpeta, en la ruta que se le pasa
-def crearCrapeta(pathActual):
-    
+def crearCarpeta(pathActual):
     try:
         os.makedirs(pathActual,exist_ok = True)
+        logging.info(f"Carpeta creada: {pathActual}")
         return True
     except OSError as e:
+        logging.error(f"No se pudo crear la carpeta {pathActual}: {e}")
         return False
 
 # crear carpeta Fiesta
-def mkdir_Fiesta():
+def crear_carpeta_fiesta():
     # obtener ruta raiz del usuario
     path_usr = os.path.expanduser("~")
     # por default la carpte se creara en el escritorio
@@ -18,29 +22,36 @@ def mkdir_Fiesta():
     nameDir = "Fiesta"
     # unir el nombre de la carpeta fiesta con el escritorio y con la ruta raiz
     path = os.path.join(path_usr,desk,nameDir)
-    # crear carpeta
-    crearCrapeta(path)
-    dirM,dirK = mkdirM_K(path)
-    return dirM,dirK
+    # crear carpeta fiesta
+    crearCarpeta(path)
+
+    return crear_subcarpetas_musica_karaoke(path)
 # crear sub carpetas musica y karoke dentro de fiesta
-def mkdirM_K(path):
+def crear_subcarpetas_musica_karaoke(path):
     musica = "Musica"
     karaoke = "Karaoke"
 
-    dirM = os.path.join(path,musica)
-    dirK = os.path.join(path,karaoke)
+    path_musica = os.path.join(path,musica)
+    path_karoke = os.path.join(path,karaoke)
 
-    crearCrapeta(dirM)
-    crearCrapeta(dirK)
-    return dirM,dirK
+    crearCarpeta(path_musica)
+    crearCarpeta(path_karoke)
+    return path_musica,path_karoke
 
 def abrirDir(tipo):
-    m,k=mkdir_Fiesta()
-    a="audio"
-    v="video"
-    if tipo == a:
-        subprocess.Popen(['explorer',m])
-    elif tipo == v:
-        subprocess.Popen(['explorer',k])
+    m,k = crear_carpeta_fiesta()
+    ruta = m if tipo == "audio" else k if tipo == "video" else None
+    
+    if ruta and os.path.exists(ruta):
+        system = platform.system()
+        try:
+            if system == "Windows":
+                subprocess.Popen(['explorer', ruta])
+            elif system == "Darwin":  # macOS
+                subprocess.Popen(['open', ruta])
+            else:  # Linux y otros
+                subprocess.Popen(['xdg-open', ruta])
+        except Exception as e:
+            logging.error(f"No se pudo abrir la carpeta: {e}")
     else:
-        print("Opcion no reconcida")
+        logging.error(f"La ruta especificada no existe. Tipo: {tipo}")
