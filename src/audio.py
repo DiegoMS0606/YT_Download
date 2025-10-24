@@ -1,35 +1,27 @@
 import yt_dlp as yt
-import os, sys
+import os, sys, logging
 
-def get_ffmpeg_path():
-    if getattr(sys, 'frozen', False):
-        # Carpeta del ejecutable
-        bundle_dir = sys._MEIPASS
-        print(f"1: {bundle_dir}")
-    else:
-        # Carpeta del script de Python
-        bundle_dir = os.path.dirname(os.path.abspath(__file__))
-        print(f"2: {bundle_dir}")
-    # Ruta relativa a la carpeta ffmpeg dentro del proyecto
-    return os.path.join(bundle_dir,'ffmpeg.exe')
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
-def get_ffprobe_path():
-    
-    # Similar al ffmpeg, obtener la ruta relativa de ffprobe
+def get_binary_path(binary_name):
     if getattr(sys, 'frozen', False):
         bundle_dir = sys._MEIPASS
-        print(f"3: {bundle_dir}")
     else:
         bundle_dir = os.path.dirname(os.path.abspath(__file__))
-        print(f"4: {bundle_dir}")
+    ruta = os.path.join(bundle_dir, binary_name)
     
-    return os.path.join(bundle_dir,'ffprobe.exe')
+    if  not os.path.exists(ruta):
+        logging.error(f"No se encontró el binario {binary_name} en la ruta {ruta}")
+        
+    return ruta
+
 
 def descargaAudio(url, output_path,progress_hook):
-    ffmpeg = get_ffmpeg_path()
-    ffprobe = get_ffprobe_path()
-    print(f"ffmpeg: {ffmpeg}")
-    print(f"ffprobe: {ffprobe}")
+    if progress_hook and not callable(progress_hook):
+        raise ValueError("El progress_hook debe ser una función callable.")
+    ffmpeg = get_binary_path('ffmpeg.exe')
+    
+    logging.info(f"Ruta de ffmpeg: {ffmpeg}")
     
     ydl_opts = {
         'outtmpl': output_path,
@@ -39,11 +31,13 @@ def descargaAudio(url, output_path,progress_hook):
             'preferredcodec': 'mp3',
             'preferredquality':'192',
         }],
-        'progress_hooks': [progress_hook],
+        'progress_hooks': [progress_hook] if progress_hook else [],
         'ffmpeg_location': ffmpeg,
-        
-        'ffprobe_location': ffprobe,
     }
     
-    with yt.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
+    try:
+        with yt.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
+        logging.info("Descarga de audio completada.")
+    except Exception as e:
+        logging.error(f"Error al descargar el audio: {e}")
