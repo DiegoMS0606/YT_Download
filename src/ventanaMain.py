@@ -10,7 +10,7 @@ TIPO_VIDEO = "video"
 TIPO_AUDIO = "audio"
 
 class VentanaDownloader:
-    def __init__(self, root):
+    def __init__(self):
         self.root = ctk.CTk()
         ctk.set_appearance_mode("System")
         ctk.set_default_color_theme("blue")
@@ -50,13 +50,14 @@ class VentanaDownloader:
         self._url_entry.pack(pady=5)
     
     def _opcion_box(self, parent):
-        frame_opciones = self._crear_frame(parent, 430, 40)
-        frame_opciones.pack_propagate()
-        frame_opciones.grid_columnconfigure(0, weight=1)
-        frame_opciones.grid_columnconfigure(1, weight=1)
-        
-        self._crear_radio(frame_opciones, "Audio", TIPO_AUDIO, 0)
-        self._crear_radio(frame_opciones, "Video", TIPO_VIDEO, 1)
+        frame_opciones = self._crear_frame(parent, 250, 40)
+        frame_opciones.pack(pady=5)
+
+        radio_audio = ctk.CTkRadioButton(master=frame_opciones, text="Audio", variable=self.media_var, value=TIPO_AUDIO)
+        radio_audio.pack(side=ctk.LEFT, padx=5, pady=5)
+
+        radio_video = ctk.CTkRadioButton(master=frame_opciones, text="Video", variable=self.media_var, value=TIPO_VIDEO)
+        radio_video.pack(side=ctk.RIGHT, padx=5, pady=5)
     
     def _crear_radio(self, parent, texto, valor, col):
         frame = self._crear_frame(parent, 80, 35)
@@ -73,8 +74,8 @@ class VentanaDownloader:
         frame_btn.grid_columnconfigure(0, weight=1)
         frame_btn.grid_columnconfigure(1, weight=1)
         
-        btn_descarga = ctk.CTkButton(master=frame_btn, text="Descargar", command=self._iniciar_descarga)
-        btn_descarga.grid(row=0, column=0, padx=10)
+        self.btn_descarga = ctk.CTkButton(master=frame_btn, text="Descargar", command=self._iniciar_descarga)
+        self.btn_descarga.grid(row=0, column=0, padx=10)
         
         btn_carpeta = ctk.CTkButton(master=frame_btn, text="Carpeta de descarga",
                                     command=lambda: abrirDir(self.obtener_seleccion()))
@@ -86,19 +87,25 @@ class VentanaDownloader:
         self.progress_bar.pack(pady=10)
         self.progress_bar.set(0)
     
-    def _actualizar_color_barra(self):
-        if self.obtener_seleccion() == TIPO_VIDEO:
-            self.progress_bar.configure(fg_color="red")
-        else:
-            self.progress_bar.configure(fg_color="blue")  # audio: azul
     
     # --- Label de mensajes ---
     def _add_message_label(self, parent):
-        self.label_msg = ctk.CTkLabel(master=parent, text="", fg_color="transparent")
+        
+        self.label_msg = ctk.CTkLabel(master=parent, text="", fg_color="transparent", wraplength=400, justify="center")
         self.label_msg.pack(pady=5)
     
     def update_message(self, text):
-        self.label_msg.configure(text=text)
+        if "Descarga completa" in text:
+            color = "#1F6AA5"
+        elif "Error" in text:
+            color = "#FF0000"
+        elif "ya existe" in text:
+            color = "#FFA500"
+        else:
+            color = "#ffffff"
+
+        fuente = ("Arial",14, "bold")
+        self.label_msg.configure(text=text, text_color=color, font=fuente)
     
     # --- Función de descarga ---
     def _iniciar_descarga(self):
@@ -106,12 +113,15 @@ class VentanaDownloader:
         if not url:
             self.update_message("Error: La URL ingresada está vacía")
             return
-        
-        self._actualizar_color_barra()
+        self.btn_descarga.configure(state="disabled")
+        def actualizar_mensaje_y_reactivar(texto):
+            self.update_message(texto)
+            if "Descarga completa" in texto or "Error" in texto or "ya existe" in texto:
+                self.btn_descarga.configure(state="normal")
         descargarArchivo(self.obtener_seleccion(),
                          url,
                          progress_bar=self.progress_bar,
-                         update_message=self.update_message)
+                         update_message=actualizar_mensaje_y_reactivar)
         self._url_entry.delete(0, tk.END)
     
     # --- Iniciar GUI ---

@@ -11,3 +11,5 @@ __pycache__/
 thumbs.db
 .idea/
 *.log
+*.ico
+*.webp

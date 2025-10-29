@@ -6,8 +6,9 @@ logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 # funcion que crea cualquier carpeta, en la ruta que se le pasa
 def crearCarpeta(pathActual):
     try:
-        os.makedirs(pathActual,exist_ok = True)
-        logging.info(f"Carpeta creada: {pathActual}")
+        if not os.path.exists(pathActual):
+            os.makedirs(pathActual)
+            logging.info(f"Carpeta creada: {pathActual}")
         return True
     except OSError as e:
         logging.error(f"No se pudo crear la carpeta {pathActual}: {e}")
