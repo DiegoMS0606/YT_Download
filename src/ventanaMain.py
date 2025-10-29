@@ -4,7 +4,7 @@ from controlador import descargarArchivo
 from directory import abrirDir
 import tkinter.messagebox as messagebox
 import os
-
+from version import VERSION
 
 TIPO_VIDEO = "video"
 TIPO_AUDIO = "audio"
@@ -21,6 +21,7 @@ class VentanaDownloader:
         
         self.media_var = tk.StringVar(value=TIPO_VIDEO)
         self._crear_widgets()
+        
     
     def _crear_widgets(self):
         main_frame = self._crear_frame(self.root, 450, 450)
@@ -31,6 +32,9 @@ class VentanaDownloader:
         self._box_descarga(main_frame)
         self._add_progress_bar(main_frame)
         self._add_message_label(main_frame)
+        
+        version_label = ctk.CTkLabel(master=main_frame, text=f"Versión: {VERSION}", fg_color="transparent")
+        version_label.pack(side="bottom", pady=5)
 
     def _crear_frame(self, root, width, height):
         frame = ctk.CTkFrame(master=root, width=width, height=height,fg_color="transparent")
@@ -42,6 +46,7 @@ class VentanaDownloader:
         label.pack()
         return label
     
+        
     def _solicitar_link(self, main):
         frameSL = self._crear_frame(main,450,70)
         frameSL.pack(pady=5)

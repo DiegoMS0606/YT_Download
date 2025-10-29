@@ -2,6 +2,7 @@ from ventanaMain import VentanaDownloader
 import logging
 import os
 from datetime import datetime
+from updater import check_for_updates
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(BASE_DIR)
@@ -32,6 +33,7 @@ logger.info(f"Archivo de log: {log_path}")
 
 if __name__ == "__main__":
     try:
+        check_for_updates()
         app = VentanaDownloader()
         app.run()
     finally:
